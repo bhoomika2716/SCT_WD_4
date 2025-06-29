@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>To-Do with Date & Time</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"/>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    body {
+      height: 100vh;
+      background: linear-gradient(#ffd55c 100%);
+      font-family: "Poppins", sans-serif;
+    }
+    .app {
+      width: min(95vw, 35em);
+      position: absolute;
+      margin: auto;
+      left: 0;
+      right: 0;
+      top: 5em;
+    }
+    .container {
+      padding: 2em 2.5em;
+      background-color: beige;
+      box-shadow: 0 1em 2em rgba(0, 0, 0, 0.2);
+      border-radius: 0.8em;
+    }
+    #wrapper {
+      display: grid;
+      grid-template-columns: 5fr 2fr 2fr 2fr;
+      gap: 0.8em;
+      margin-bottom: 1em;
+    }
+    #wrapper input, #wrapper button {
+      padding: 0.8em;
+      font-size: 0.9em;
+      border: none;
+      outline: none;
+      border-radius: 0.5em;
+    }
+    #wrapper input[type="text"] {
+      border-bottom: 2px solid #5a95ff;
+    }
+    #wrapper input[type="date"],
+    #wrapper input[type="time"] {
+      background-color: #fff;
+    }
+    #wrapper button {
+      background-color: #5a95ff;
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    #tasks {
+      margin-top: 1em;
+      border-radius: 0.5em;
+      padding: 1em 0.5em;
+    }
+    .task {
+      background-color: white;
+      padding: 0.8em 1em;
+      display: grid;
+      grid-template-columns: 1fr 5fr 3fr 1.5fr 1.5fr;
+      gap: 0.5em;
+      border-radius: 0.5em;
+      box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.2);
+      align-items: center;
+      margin-bottom: 1em;
+    }
+    .task input[type="checkbox"] {
+      appearance: none;
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      border: 2px solid #5a95ff;
+      background-color: white;
+      cursor: pointer;
+      position: relative;
+    }
+    .task input[type="checkbox"]:checked {
+      background-color: #5a95ff;
+    }
+    .task input[type="checkbox"]:checked:before {
+      content: "\f00c";
+      position: absolute;
+      transform: translate(-50%, -50%);
+      top: 50%;
+      left: 50%;
+      font-family: "Font Awesome 5 Free";
+      font-weight: 900;
+      color: white;
+      font-size: 0.8em;
+    }
+    .task .taskname {
+      word-break: break-word;
+    }
+    .task .datetime {
+      font-size: 0.8em;
+      color: #777;
+    }
+    .task button {
+      padding: 0.6em;
+      border: none;
+      border-radius: 0.4em;
+      color: white;
+      cursor: pointer;
+    }
+    .edit {
+      background-color: #5a95ff;
+    }
+    .delete {
+      background-color: #ff5c5c;
+    }
+    #pending-tasks span {
+      color: #5a95ff;
+    }
+    .completed {
+      text-decoration: line-through;
+      color: #a0a0a0;
+    }
+    #error {
+      text-align: center;
+      background-color: white;
+      color: orangered;
+      margin-top: 1.5em;
+      padding: 1em 0;
+      border-radius: 0.8em;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="container">
+      <div id="wrapper">
+        <input type="text" placeholder="Task to be done..." id="task-input" />
+        <input type="date" id="date-input" />
+        <input type="time" id="time-input" />
+        <button id="add-btn">Add</button>
+      </div>
+      <div id="tasks">
+        <p id="pending-tasks">You have <span class="count-value">0</span> task(s) to complete.</p>
+      </div>
+    </div>
+    <p id="error">Input cannot be empty!</p>
+  </div>
+
+  <script>
+    const addBtn = document.querySelector("#add-btn");
+    const newTaskInput = document.querySelector("#task-input");
+    const dateInput = document.querySelector("#date-input");
+    const timeInput = document.querySelector("#time-input");
+    const tasksContainer = document.querySelector("#tasks");
+    const error = document.getElementById("error");
+    const countValue = document.querySelector(".count-value");
+    let taskCount = 0;
+
+    const displayCount = (count) => {
+      countValue.innerText = count;
+    };
+
+    const addTask = () => {
+      const taskName = newTaskInput.value.trim();
+      const taskDate = dateInput.value;
+      const taskTime = timeInput.value;
+
+      error.style.display = "none";
+
+      if (!taskName || !taskDate || !taskTime) {
+        setTimeout(() => {
+          error.textContent = "All fields are required!";
+          error.style.display = "block";
+        }, 200);
+        return;
+      }
+
+      const task = `
+        <div class="task">
+          <input type="checkbox" class="task-check">
+          <span class="taskname">${taskName}</span>
+          <span class="datetime">${taskDate} ${taskTime}</span>
+          <button class="edit"><label>Edit</label></button>
+          <button class="delete"><label>Delete</label></button>
+        </div>`;
+
+      tasksContainer.insertAdjacentHTML("beforeend", task);
+      const newTaskElement = tasksContainer.lastElementChild;
+
+      // DELETE
+      newTaskElement.querySelector(".delete").onclick = () => {
+        newTaskElement.remove();
+        taskCount -= 1;
+        displayCount(taskCount);
+      };
+
+      // EDIT
+      newTaskElement.querySelector(".edit").onclick = () => {
+        newTaskInput.value = newTaskElement.querySelector(".taskname").innerText;
+        const [d, t] = newTaskElement.querySelector(".datetime").innerText.split(" ");
+        dateInput.value = d;
+        timeInput.value = t;
+        newTaskElement.remove();
+        taskCount -= 1;
+        displayCount(taskCount);
+      };
+
+      // CHECKBOX
+      const checkBox = newTaskElement.querySelector(".task-check");
+      const taskText = newTaskElement.querySelector(".taskname");
+
+      checkBox.onchange = () => {
+        taskText.classList.toggle("completed");
+        if (checkBox.checked) {
+          taskCount -= 1;
+        } else {
+          taskCount += 1;
+        }
+        displayCount(taskCount);
+      };
+
+      taskCount += 1;
+      displayCount(taskCount);
+
+      newTaskInput.value = "";
+      dateInput.value = "";
+      timeInput.value = "";
+    };
+
+    addBtn.addEventListener("click", addTask);
+
+    window.onload = () => {
+      taskCount = 0;
+      displayCount(taskCount);
+      newTaskInput.value = "";
+      dateInput.value = "";
+      timeInput.value = "";
+    };
+  </script>
+</body>
+</html>
